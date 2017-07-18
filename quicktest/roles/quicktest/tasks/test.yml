@@ -1,0 +1,15 @@
+---
+
+- name: Add ESXi Host to VCSA
+  local_action:
+            module: vmware_host
+            validate_certs: false
+            hostname: ukrdvmgvc001.dbpoc.uk
+            username: "{{ user_name }}"
+            password: "{{ password }}"
+            datacenter_name: Synergy_Poc
+            cluster_name: Synergy_Poc_Cluster
+            esxi_hostname: 10.0.5.98
+            esxi_username: root
+            esxi_password: Start123
+            state: present

@@ -1,0 +1,87 @@
+###
+# Copyright (2016) Hewlett Packard Enterprise Development LP
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+---
+- hosts: all
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+    # Inform the permitted Interconnect Type URI to configure Interconnect Map
+    permitted_interconnect_type_name: 'HP VC Flex-10/10D Module'
+  tasks:
+    - name: Create a Logical Interconnect Group
+      oneview_logical_interconnect_group:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: 'Test Logical Interconnect Group'
+          uplinkSets: []
+          enclosureType: 'C7000'
+          interconnectMapTemplate:
+            interconnectMapEntryTemplates:
+              - logicalDownlinkUri: ~
+                logicalLocation:
+                    locationEntries:
+                        - relativeValue: "1"
+                          type: "Bay"
+                        - relativeValue: 1
+                          type: "Enclosure"
+                permittedInterconnectTypeName: '{{ permitted_interconnect_type_name }}'
+                # Alternatively you can inform permittedInterconnectTypeUri
+      delegate_to: localhost
+
+    - name: Do nothing with the Logical Interconnect Group when no changes are provided
+      oneview_logical_interconnect_group:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: 'Test Logical Interconnect Group'
+          enclosureType: 'C7000'
+      delegate_to: localhost
+
+    - name: Update the Logical Interconnect Group changing the attribute description to 'New Description'
+      oneview_logical_interconnect_group:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: 'Test Logical Interconnect Group'
+          description: 'New Description'
+      delegate_to: localhost
+
+    - name: Rename the Logical Interconnect Group to 'Updated Logical Interconnect Group'
+      oneview_logical_interconnect_group:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: 'Test Logical Interconnect Group'
+          newName: 'Updated Logical Interconnect Group'
+      delegate_to: localhost
+
+    - name: Delete the Logical Interconnect Group
+      oneview_logical_interconnect_group:
+        config: "{{ config }}"
+        state: absent
+        data:
+          name: 'Updated Logical Interconnect Group'
+      delegate_to: localhost
+      register: deleted
+
+    - name: Do nothing when the Logical Interconnect Group is absent
+      oneview_logical_interconnect_group:
+        config: "{{ config }}"
+        state: absent
+        data:
+          name: 'Updated Logical Interconnect Group'
+      delegate_to: localhost
+      register: deleted

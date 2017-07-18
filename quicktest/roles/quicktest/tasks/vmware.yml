@@ -1,0 +1,114 @@
+---
+
+- name: Gather facts about Ethernet Networks
+  oneview_ethernet_network_facts:
+    config: "{{ playbook_dir }}/config.json"
+    params:
+      sort: 'name:ascending'
+
+- name: Gather facts about Fibre Channel Networks
+  oneview_fc_network_facts:
+    config: "{{ playbook_dir }}/config.json"
+    params:
+      sort: 'name:ascending'
+
+- name: Gather facts about all Storage Systems
+  oneview_storage_system_facts:
+    config: "{{ playbook_dir }}/config.json"
+
+- name: Gather facts about all Storage Pools
+  oneview_storage_pool_facts:
+    config: "{{ playbook_dir }}/config.json"
+
+- name: Gather paginated, filtered and sorted facts about Volumes
+  oneview_volume_facts:
+    config: "{{ playbook_dir }}/config.json"
+
+- name: Create a VMware SPT
+  oneview_server_profile_template:
+    config: "{{ playbook_dir }}/config.json"
+    state: present
+    data:
+      name: '{{ spt_name }}'
+      serverHardwareTypeName: '{{ server_hardware_type }}'
+      enclosureGroupName: '{{ enclosure_group }}'
+      connections:
+          - id: 1
+            functionType: "Ethernet"
+            portId: "Auto"
+            networkUri: '{{ ethernet_networks.0.uri }}'
+          - id: 2
+            functionType: "Ethernet"
+            portId: "Auto"
+            networkUri: '{{ ethernet_networks.2.uri }}'
+          - id: 3
+            functionType: "FibreChannel"
+            portId: "Auto"
+            networkUri: '{{ fc_networks.0.uri }}'
+          - id: 4
+            functionType: "Ethernet"
+            portId: "Auto"
+            networkUri: '{{ ethernet_networks.1.uri }}'
+          - id: 5
+            functionType: "Ethernet"
+            portId: "Auto"
+            networkUri: '{{ ethernet_networks.3.uri }}'
+          - id: 6
+            functionType: "FibreChannel"
+            portId: "Auto"
+            networkUri: '{{ fc_networks.1.uri }}'
+      bootMode:
+          manageMode: true
+          mode: "UEFI"
+          pxeBootPolicy: "Auto"
+      boot:
+          manageBoot: true
+          order: ["HardDisk"]
+      bios:
+          manageBios: true
+          overriddenSettings: 
+      localStorage:
+          sasLogicalJBODs: 
+          controllers:
+              - deviceSlot: "Embedded"
+                mode: "RAID"
+                initialize: true
+                logicalDrives:
+                    - name: "LD1"
+                      raidLevel: "RAID1"
+                      bootable: true
+                      numPhysicalDrives: 2
+                      driveTechnology: null
+                      sasLogicalJBODId: null
+      sanStorage:
+          manageSanStorage: true
+          hostOSType: '{{ host_os_type }}'
+          volumeAttachments: 
+            - id: "1"
+              lun: "0"
+              lunType: "Manual"
+              storagePaths: 
+                - connectionId: 3
+                  isEnabled: true
+                  storageTargetType: "Auto"
+                - connectionId: 6
+                  isEnabled: true
+                  storageTargetType: "Auto"
+              volumeUri: '{{ storage_volumes.0.uri }}'
+              volumeStoragePoolUri: '{{ storage_pools.0.uri }}'
+              isBootVolume: false
+              volumeStorageSystemUri: '{{ storage_systems.0.uri }}'
+            - id: "2"
+              lun: "1"
+              lunType: "Manual"
+              storagePaths: 
+                - connectionId: 3
+                  isEnabled: true
+                  storageTargetType: "Auto"
+                - connectionId: 6
+                  isEnabled: true
+                  storageTargetType: "Auto"
+              volumeUri: '{{ storage_volumes.1.uri }}'
+              volumeStoragePoolUri: '{{ storage_pools.0.uri }}'
+              isBootVolume: false
+              volumeStorageSystemUri: '{{ storage_systems.0.uri }}'
